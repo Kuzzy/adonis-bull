@@ -35,6 +35,7 @@ Adonis Bull provides an easy way to start using Bull.
     + [Other ways of using schedule](#other-ways-of-using-schedule)
     + [Using schedule with a third party lib](#using-schedule-with-a-third-party-lib)
   * [Advanced jobs](#advanced-jobs)
+  * [Extend jobs from base class](#extends)
   * [Exceptions](#exceptions)
 - [Contributing](#contributing)
   * [Contribution Guidelines](#contribution-guidelines)
@@ -278,6 +279,49 @@ Bull.add(key, data, {
 ```
 
 This `job` will run at 12:30 PM, on Wednesdays and Fridays.
+
+### Extends
+
+It's possible to extend a jobs from base class to reuse events routine in several jobs:
+
+```ts
+export default class ExportJob {
+  public async onCompleted(job, result) {
+    // ... job completed and result can be saved here
+  }
+
+  public async onProgress(job, progress) {
+      console.log('progress', progress)
+     // ... do somesing with progress
+  }
+}
+
+export default class ExportPdfJob extends ExportJob implements JobContract {
+    public key = 'ExportPdf'
+
+    public concurrency = 3
+
+    public async handle(job) {
+      job.updateProgress(10)
+      // ... handle your job
+      job.updateProgress(100)
+      return 'my.pdf'
+   }
+}
+
+export default class ExportCsv extends ExportJob implements JobContract {
+  public key = 'ExportCsv'
+
+  public concurrency = 10
+
+  public async handle(job) {
+    job.updateProgress(10)
+    // ... handle your job
+    job.updateProgress(100)
+    return 'my.csv'
+  }
+}
+```
 
 ### Exceptions
 

@@ -67,9 +67,24 @@ export class BullManager implements BullManagerContract {
   }
 
   private _getEventListener(job: JobContract): EventListener[] {
-    const jobListeners = Object.getOwnPropertyNames(
-      Object.getPrototypeOf(job)
-    ).reduce((events, method: string) => {
+    // https://stackoverflow.com/questions/31054910/get-functions-methods-of-a-class/40577337#40577337
+    function getAllMethodNames(obj) {
+      const methods = new Set<string | number | symbol>()
+      while ((obj = Reflect.getPrototypeOf(obj))) {
+        const keys = Reflect.ownKeys(obj)
+        keys.forEach((k) => methods.add(k))
+      }
+      return methods.values()
+    }
+
+    const methodNamesSet = getAllMethodNames(job)
+    const methodNames: (string | number | symbol)[] = []
+
+    for (const name of methodNamesSet) {
+      methodNames.push(name)
+    }
+
+    const jobListeners = methodNames.reduce((events, method: string) => {
       if (method.startsWith('on')) {
         const eventName = method
           .replace(/^on(\w)/, (_, group) => group.toLowerCase())
